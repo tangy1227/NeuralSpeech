@@ -54,12 +54,12 @@ def load_state_dict(model, state_dict):
 
 def restore_from_checkpoint(model, model_dir, step, filename='weights'):
     try:
-        checkpoint = torch.load(f'{model_dir}/{filename}-{step}.pt')
+        checkpoint = torch.load(f'{model_dir}/{filename}-{step}.pt', map_location=torch.device('cuda')) # map_location=torch.device('cuda')
         model, step = load_state_dict(model, checkpoint)
         print("Loaded {}".format(f'{model_dir}/{filename}-{step}.pt'))
         return model, step
     except FileNotFoundError:
-        print("Trying to load {}...".format(f'{model_dir}/{filename}.pt'))
+        print("Trying to load {}...".format(f'{model_dir}/{filename}.pt'), map_location=torch.device('cuda')) # map_location=torch.device('cuda')
         checkpoint = torch.load(f'{model_dir}/{filename}.pt')
         model, step = load_state_dict(model, checkpoint)
         print("Loaded {} from {} step checkpoint".format(f'{model_dir}/{filename}.pt', step))
@@ -181,7 +181,10 @@ def main(args):
                 global_cond = None
 
         audio = predict(model, spectrogram, target_std, global_cond=global_cond, fast_sampling=args.fast)
-        sample_name = "{:04d}.wav".format(i + 1)
+        # sample_name = "{:04d}.wav".format(i + 1)
+        sample_name = features['name'][0]
+        print(sample_name)
+        print('________________________________________')
         torchaudio.save(os.path.join(sample_path, sample_name), audio.cpu(), sample_rate=model.params.sample_rate)
 
 if __name__ == '__main__':

@@ -114,6 +114,7 @@ class NumpyDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         audio_filename = self.filenames[idx]
+        file_name_out = os.path.basename(audio_filename)
         sr, audio = read(audio_filename)
         if self.params.sample_rate != sr:
             raise ValueError(f'Invalid sample rate {sr}.')
@@ -143,7 +144,8 @@ class NumpyDataset(torch.utils.data.Dataset):
         return {
             'audio': audio, # [T_time]
             'spectrogram': spectrogram[0].T, # [T_mel, 80]
-            'target_std': target_std[0] # [T_mel]
+            'target_std': target_std[0], # [T_mel]
+            'name': file_name_out
         }
 
 
@@ -171,10 +173,13 @@ class Collator:
         audio = torch.stack([record['audio'] for record in minibatch if 'audio' in record])
         spectrogram = torch.stack([record['spectrogram'] for record in minibatch if 'spectrogram' in record])
         target_std = torch.stack([record['target_std'] for record in minibatch if 'target_std' in record])
+        names = [record['name'] for record in minibatch if 'name' in record]
+
         return {
             'audio': audio,
             'spectrogram': spectrogram,
-            'target_std': target_std
+            'target_std': target_std,
+            'name': names
         }
 
 def from_path(data_root, filelist, params, is_distributed=False):
