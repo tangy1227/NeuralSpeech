@@ -4,3 +4,7 @@ tqdm
 librosa==0.8.1
 scipy
 tensorboard
+
+# for eval
+pysptk
+fastdtw
